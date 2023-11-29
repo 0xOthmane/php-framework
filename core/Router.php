@@ -41,8 +41,11 @@ class Router
             return $this->renderView($callback);
         }
         // echo call_user_func($callback); // echo the returned string by the callback
-        // return call_user_func($callback); call_user_func(): Argument #1 ($callback) must be a valid callback, non-static method app\controllers\SiteController::handleContact() cannot be called statically
-        return call_user_func([new $callback[0],$callback[1]]);
+        // return call_user_func($callback); The argument is called statically, callback must not be a non-static method.
+        if (is_array($callback)) {
+            $callback[0] = new $callback[0]();
+        }
+        return call_user_func($callback, $this->request);
     }
 
     // Render a string into the layout
@@ -50,10 +53,9 @@ class Router
     {
         $layoutContent = $this->layoutContent();
         return str_replace('{{content}}', $viewContent, $layoutContent);
-        
     }
 
-    public function renderView($view, $params=[])
+    public function renderView($view, $params = [])
     {
         $layoutContent = $this->layoutContent();
         $viewContent = $this->renderOnlyView($view, $params);
