@@ -1,0 +1,14 @@
+{
+    "name": "0xothmane/php-framework",
+    "authors": [
+        {
+            "name": "0xOthmane"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "app\\": "./"
+        }
+    },
+    "require": {}
+}
