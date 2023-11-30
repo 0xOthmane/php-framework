@@ -30,7 +30,7 @@ class Router
     public function resolve()
     {
         $path = $this->request->getPath();
-        $method = $this->request->getMethod();
+        $method = $this->request->method();
         $callback = $this->routes[$method][$path] ?? false; // Return a Closure Object
         if ($callback === false) {
             // Application::$app->response->setStatusCode(404);
@@ -43,7 +43,8 @@ class Router
         // echo call_user_func($callback); // echo the returned string by the callback
         // return call_user_func($callback); The argument is called statically, callback must not be a non-static method.
         if (is_array($callback)) {
-            $callback[0] = new $callback[0]();
+            Application::$app->setController(new $callback[0]());
+            $callback[0] = Application::$app->getController();
         }
         return call_user_func($callback, $this->request);
     }
@@ -66,8 +67,9 @@ class Router
 
     protected function layoutContent()
     {
+        $layout = Application::$app->getController()->layout;
         ob_start(); // caching output to browser
-        include_once Application::$ROOT_DIR . "/views/layouts/mainLayout.php";
+        include_once Application::$ROOT_DIR . "/views/layouts/$layout.php";
         return ob_get_clean(); // Get current buffer contents and delete current output buffer
     }
 
