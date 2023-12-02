@@ -32,16 +32,16 @@ class Database
             $className = pathinfo($migration, PATHINFO_FILENAME);
 
             $instance = new $className();
-            log("Applying migration $migration");
+            $this->log("Applying migration $migration");
             $instance->up();
-            log("Applied migration $migration");
+            $this->log("Applied migration $migration");
             $newMigrations[] = $migration;
         }
 
         if (!empty($newMigrations)) {
             $this->saveMigrations($newMigrations);
         } else {
-            log('All migrations are applied');
+            $this->log('All migrations are applied');
         }
     }
 
