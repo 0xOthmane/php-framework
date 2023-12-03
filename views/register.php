@@ -1,3 +1,7 @@
+<?php
+/** @var $model \app\models\user */
+?>
+
 <h1>Register</h1>
 <?php $form = app\core\form\Form::begin('/register', 'POST') ?>
 <div class="row">

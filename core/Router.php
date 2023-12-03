@@ -46,7 +46,7 @@ class Router
             Application::$app->setController(new $callback[0]());
             $callback[0] = Application::$app->getController();
         }
-        return call_user_func($callback, $this->request);
+        return call_user_func($callback, $this->request, $this->response);
     }
 
     // Render a string into the layout

@@ -4,9 +4,11 @@ namespace app\core;
 
 abstract class DbModel extends Model
 {
-    abstract public function tableName(): string;
+    abstract static public function tableName(): string;
 
     abstract public function attributes(): array;
+
+    abstract static public function primaryKey(): string;
 
     public function save()
     {
@@ -14,13 +16,26 @@ abstract class DbModel extends Model
         $attributes = $this->attributes();
         $params = array_map(fn ($attr) => ":$attr", $attributes);
         $stmt = self::prepare("INSERT INTO $tableName (" . implode(',', $attributes) . ") VALUES(" . implode(',', $params) . ")");
-        
+
         foreach ($attributes as $attribute) {
-            $stmt->bindValue(":$attribute",$this->{$attribute});
+            $stmt->bindValue(":$attribute", $this->{$attribute});
         }
         $stmt->execute();
 
         return true;
+    }
+
+    public static function findOne($where)
+    { // ['email' => 'a@b.c', 'firstname' => 'abc']
+        $tableName = static::tableName();
+        $attributes = array_keys($where);
+        $sql = implode('AND ', array_map(fn ($attr) => "$attr = :$attr", $attributes));
+        $stmt = self::prepare("SELECT * FROM $tableName WHERE $sql");
+        foreach ($where as $key => $value) {
+            $stmt->bindValue(":$key", $value);
+        }
+        $stmt->execute();
+        return $stmt->fetchObject(static::class); // give an instance on the class
     }
 
     public static function prepare($sql)
