@@ -2,6 +2,8 @@
 
 namespace app\core;
 
+use app\core\exceptions\NotFoundException;
+
 class Router
 {
 
@@ -34,8 +36,8 @@ class Router
         $callback = $this->routes[$method][$path] ?? false; // Return a Closure Object
         if ($callback === false) {
             // Application::$app->response->setStatusCode(404);
-            $this->response->setStatusCode(404);
-            return $this->renderView('_404');
+            
+            throw new NotFoundException();
         }
         if (is_string($callback)) {
             return $this->renderView($callback);
@@ -43,8 +45,14 @@ class Router
         // echo call_user_func($callback); // echo the returned string by the callback
         // return call_user_func($callback); The argument is called statically, callback must not be a non-static method.
         if (is_array($callback)) {
-            Application::$app->setController(new $callback[0]());
-            $callback[0] = Application::$app->getController();
+            /** @var Controller $controller */
+            $controller = new $callback[0]();
+            Application::$app->controller = $controller;
+            $controller->action = $callback[1];
+            foreach ($controller->getMiddlewares() as  $middleware) {
+                $middleware->execute();
+            }
+            $callback[0] = $controller;
         }
         return call_user_func($callback, $this->request, $this->response);
     }
@@ -67,7 +75,10 @@ class Router
 
     protected function layoutContent()
     {
-        $layout = Application::$app->getController()->layout;
+        $layout = Application::$app->layout;
+        if (Application::$app->controller) {
+            $layout = Application::$app->controller->layout;
+        }
         ob_start(); // caching output to browser
         include_once Application::$ROOT_DIR . "/views/layouts/$layout.php";
         return ob_get_clean(); // Get current buffer contents and delete current output buffer

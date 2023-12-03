@@ -10,11 +10,12 @@ class Application
     public Request $request;
     public Response $response;
     public static Application $app;
-    public Controller $controller;
+    public ?Controller $controller = null;
     public Database $db;
     public Session $session;
     public ?UserModel $user;
     public string $userClass;
+    public string $layout = 'mainLayout';
 
     public function __construct($rootPath, array $config)
     {
@@ -39,7 +40,12 @@ class Application
 
     public function run()
     {
-        echo $this->router->resolve();
+        try {
+            echo $this->router->resolve();
+        } catch (\Exception $e) {
+            $this->response->setStatusCode($e->getCode());
+            echo $this->router->renderView('_error', ['exception' => $e]);
+        }
     }
 
     public function getController(): Controller
@@ -61,12 +67,14 @@ class Application
         return true;
     }
 
-    public function logout(){
+    public function logout()
+    {
         $this->user = null;
         $this->session->remove('user');
     }
 
-    public static function isGuest(){
+    public static function isGuest()
+    {
         return !self::$app->user;
     }
 }
